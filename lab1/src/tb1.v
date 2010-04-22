@@ -90,7 +90,7 @@ rom0 (	     .resetN(resetN),
 
 TB_PROG #(
 	.SampleWidth(SampleWidth),
-	.SumWidth(SumWidth-TruncatedMSBs-TruncatedLSBs),
+	.SumWidth(SumWidth),
 	.TruncatedMSBs(TruncatedMSBs),
 	.TruncatedLSBs(TruncatedLSBs),
 	.ROMNrOfWords(ROMNrOfWords),
@@ -166,7 +166,7 @@ initial begin
 	c1.sampleClk	<= 0;
 	c1.sample 	<= 0;
 	##(20);
-	c1.sample	<= 1;
+	c1.sample	<= 1;//8'b01111111;//'h7f;//
 	c1.sampleClk	<= 1'b1;
 	while (tabs <= NrOfTaps)
 	begin
