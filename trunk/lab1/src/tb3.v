@@ -174,7 +174,7 @@ initial begin
 	c1.sampleClk	<= 0;
 	c1.sample 	<= 0;
 	##(20);
-	c1.sample	<= 1;
+	c1.sample	<= 2'h7f;
 	c1.sampleClk	<= 1'b1;
 	sum_old = c1.sum;
 	//dav_old = c1.dav;
