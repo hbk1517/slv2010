@@ -118,7 +118,7 @@ end
 always #10 clk=~clk;
 endmodule
 
-program TB_PROG #(parameter 
+program TB_PROG #(parameter
 	int NrOfTaps = 10, 
 	int SampleWidth = 8,
 	int SumWidth = 23,
