@@ -169,6 +169,7 @@ begin
 	##(1);
 	c1.sampleClk	<= 1'b0;
 	c1.sample 	<= 0;	
+	c1.
 	while (c1.dav != 1) 
 	begin
 		##(1);
