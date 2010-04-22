@@ -1,4 +1,4 @@
-module tb3 #(	//FIR parameters
+module tb3a #(	//FIR parameters
 		parameter
 		NrOfTaps = 10, 
 	     	SampleWidth = 8, 
@@ -140,21 +140,16 @@ program TB_PROG #(parameter
 	input logic [ROMWordSize-1:0] dataOut
 );
 
-logic lsc;
+bit local_clk;
+assign local_clk = clk;
+//assign c1.sampleClk = local_SC;
+
 default clocking c1 @(posedge clk);
    default input #(1ns) output #(1ns);
 	input sum;
 	input dav;
-	input addrs;
 	output sampleClk;
 	output sample;
-endclocking
-
-clocking c2 @(sum);
-   default input #(1ps) output #(1ps) ;
-	input sum;
-	input dav;
-	input clk;
 endclocking
 
 
@@ -164,7 +159,10 @@ integer report_file;
 logic [SumWidth-TruncatedMSBs-TruncatedLSBs-1:0] sum_old;
 bit dav_old;
 
+initial begin
 
+	//if (c1.sampleClk == 1)
+end
 
 initial begin
 	
@@ -173,131 +171,62 @@ initial begin
 	$fdisplay(report_file, "Impulse response Test");   
 
 	tabs = 0;
-	c1.sampleClk	<= 1'b0;
-	lsc = #1ns 1'b0;
+	c1.sampleClk	<= 0;
 	c1.sample 	<= 0;
 	##(20);
-	c1.sample	<= 8'b01111111;
+	c1.sample	<= 8'b01111111;//'h7f;
 	c1.sampleClk	<= 1'b1;
-	lsc = #1ns 1'b1;
+	sum_old = c1.sum;
+	//dav_old = c1.dav;
+	
+
 	while (tabs <= NrOfTaps)
 	begin
 		c1.sampleClk	<= 1'b1;
-		lsc = #1ns 1'b1;
+	/*	if ((c1.dav == dav_old) && (sum_old != c1.sum))
+		begin
+			$display("%t: Sum changes when dav does not change", $time);
+		end	
+		sum_old = c1.sum;*/	
 		##(1);
+
 		c1.sampleClk	<= 1'b0;
-		lsc = #1ns 1'b0;
 		c1.sample 	<= 0;	
 		while (c1.dav != 1) 
 		begin
+			if (sum_old != c1.sum)
+			begin
+				$display("%t: Sum changes when dav does not change", $time);
+			end
 			##(1);
 		end
+		sum_old = c1.sum;
+
 		// dav == 1
 		tabs++;
 		$display("%t: Sum is : %x", $time, c1.sum);
-		$fdisplay(report_file, "%t: Sum is : %x", $time, c1.sum);    
+		//$fdisplay(report_file, "%t: Sum is : %x", $time, c1.sum);   
+		##(1);
+			
+		
 		while (c1.dav != 0)
 		begin
+
+			if (c1.dav == 1)
+			begin
+				$display("%t: DAV is high for more than one cycle in a row", $time);
+			end
+ 
+			if (sum_old != c1.sum)
+			begin
+				$display("%t: Sum changes when dav does not change", $time);
+			end
 			##(1);
+			
 		end
 	end
 	$fclose(report_file); 	
 	$finish;
 end
 
-// Test 1
-initial begin
-	forever
-	begin
-		dav_old = c1.dav;
-		##1	
-		if((dav_old == c1.dav) && (c1.dav == 1))
-		begin
-			$display("%t: Violation 1 - Dav is 1 for longer than 1 Period", $time);
-		end
-	end
-end
-
-
-//Test 2
-initial begin
-	forever
-	begin
-		@(c2.sum);
-		if(dav == 0 || clk == 0)
-		begin
-			$display("%t: Violation 2 - Sum changes", $time);
-		end
-
-	end
-end
-
-//logic [2:0] tabc;
-integer tabc;
-//Test 3
-initial begin
-	tabc = 0;
-	//add = 1;
-	forever
-	begin
-		if (lsc != 0) 
-		begin
-			tabc = 0;
-			//add = 1:
-			while (c1.dav != 1)
-			begin	
-				#1ns;			
-				if(tabc == addrs)
-				begin
-					$display("%t: Violation 3 - Incorrect order", $time);	
-				end
-				
-				//tabc++;// = add + tabc;
-				if (tabc >= (NrOfTaps/2))
-				begin
-					tabc = 0;
-				end
-				else
-				begin
-					tabc++;
-				end					
-				##(1);	
-			end	
-		end else
-		begin
-			tabc = 0;
-			##(1);
-			
-		end
-	end
-end
-
-integer tabd;
-//Test 4
-initial begin
-	tabd = 0;
-	forever
-	begin
-		if (lsc != 0)
-		begin
-			tabd = 0;
-			//add = 1:
-			while (c1.dav != 1)
-			begin		
-				
-				##1;					
-				tabd++;
-			end
-			tabd--;
-			if (tabd != (NrOfTaps/2))
-			begin
-				$display("%t: Violation 4 - Incorrect Number of Tabs", $time);	
-			end
-		end else
-		begin
-			tabd = 0;
-			##(1);
-		end
-	end
-end
 endprogram
