@@ -1,4 +1,4 @@
-module tb2 #(	//FIR parameters
+module tb3 #(	//FIR parameters
 		parameter
 		NrOfTaps = 10, 
 	     	SampleWidth = 8, 
@@ -142,6 +142,7 @@ program TB_PROG #(parameter
 
 bit local_clk;
 assign local_clk = clk;
+//assign c1.sampleClk = local_SC;
 
 default clocking c1 @(posedge clk);
    default input #(1ns) output #(1ns);
@@ -151,56 +152,81 @@ default clocking c1 @(posedge clk);
 	output sample;
 endclocking
 
-integer t0;
-integer sample_file, output_golden_file, output_file, report_file;
-reg [7:0] sample_memory [0:40000];
-reg [7:0] sample_golden_memory [0:40000];
 
-integer input_index;
-integer output_index;
+logic [15:0] tabs;
+integer t0;
+integer report_file;
+logic [SumWidth-TruncatedMSBs-TruncatedLSBs-1:0] sum_old;
+bit dav_old;
+
+initial begin
+
+	//if (c1.sampleClk == 1)
+end
 
 initial begin
 	
-	//Task2
-	output_file = $fopen("/home/boris/il2450/lab1_local/reports/sampleout.hex","w");
-	report_file = $fopen("/home/boris/il2450/lab1_local/reports/task2.txt","w");
-	
-	$readmemh("/home/boris/il2450/lab1_local/data/sample.hex", sample_memory);
-	$readmemh("/home/boris/il2450/lab1_local/data/sampleoutgolden.hex", sample_golden_memory);
-	
-	input_index = 0;
-	output_index = 0;
+	//Task1
+	report_file = $fopen("reports/task1.txt","w");
+	$fdisplay(report_file, "Impulse response Test");   
 
-	$fdisplay(report_file, "Comparison to golden model");
- 
+	tabs = 0;
 	c1.sampleClk	<= 0;
 	c1.sample 	<= 0;
 	##(20);
-	while (output_index < 40000)
+	c1.sample	<= 1;
+	c1.sampleClk	<= 1'b1;
+	sum_old = c1.sum;
+	//dav_old = c1.dav;
+	
+
+	while (tabs <= NrOfTaps)
 	begin
-		c1.sample	<= sample_memory[input_index];
 		c1.sampleClk	<= 1'b1;
-		input_index++;
-		##(1);		
-		c1.sample 	<= 0;	
-		c1.sampleClk	<= 1'b0;
-		while (c1.dav != 1)
+	/*	if ((c1.dav == dav_old) && (sum_old != c1.sum))
 		begin
+			$display("%t: Sum changes when dav does not change", $time);
+		end	
+		sum_old = c1.sum;*/	
+		##(1);
+
+		c1.sampleClk	<= 1'b0;
+		c1.sample 	<= 0;	
+		while (c1.dav != 1) 
+		begin
+			if (sum_old != c1.sum)
+			begin
+				$display("%t: Sum changes when dav does not change", $time);
+			end
 			##(1);
 		end
-		if (c1.dav == 1)
+		sum_old = c1.sum;
+
+		// dav == 1
+		tabs++;
+		$display("%t: Sum is : %x", $time, c1.sum);
+		//$fdisplay(report_file, "%t: Sum is : %x", $time, c1.sum);   
+		##(1);
+			
+		
+		while (c1.dav != 0)
 		begin
-			$fdisplay(output_file, "Time: %t, OutputNo: %5d is : %2x", $time, output_index, c1.sum);
-			if (c1.sum != sample_golden_memory[output_index])
-			begin			
-				$fdisplay(report_file, "OutputNo: %5d differs: HW: %2x, ML: %2x", output_index, c1.sum, sample_golden_memory[output_index]);
-			end	
-		output_index++;
+
+			if (c1.dav == 1)
+			begin
+				$display("%t: DAV is high for more than one cycle in a row", $time);
+			end
+ 
+			if (sum_old != c1.sum)
+			begin
+				$display("%t: Sum changes when dav does not change", $time);
+			end
+			##(1);
+			
 		end
 	end
-	$fclose(output_file); 
 	$fclose(report_file); 	
-	$finish();
+	$finish;
 end
 
 endprogram

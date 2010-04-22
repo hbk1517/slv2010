@@ -187,13 +187,8 @@ initial begin
 			##(1);
 		end
 	end
-	$fclose(report_file); 
-	
-	//Task2	
-	report_file = $fopen("reports/task2.txt","w");
-	
+	$fclose(report_file); 	
 	$finish;
-//##100 $stop();
 end
 
 endprogram
