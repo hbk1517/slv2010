@@ -154,40 +154,46 @@ endclocking
 
 logic [15:0] tabs;
 integer t0;
+integer report_file;
 
 initial begin
-tabs = 0;
-c1.sampleClk	<= 0;
-c1.sample 	<= 0;
-##20
-c1.sample	<= 1;
-c1.sampleClk	<= 1'b1;
-
-while (tabs <= NrOfTaps)
-begin
-	c1.sampleClk	<= 1'b1;
-	##(1);
-	c1.sampleClk	<= 1'b0;
-	c1.sample 	<= 0;	
-	c1.
-	while (c1.dav != 1) 
-	begin
-		##(1);
-	end
-	// dav == 1
-	tabs++;
-	$display($time,, "Sum is : %x", c1.sum);
 	
-	while (c1.dav != 0)
-	begin
-		//c1.sampleClk	<= 1'b0;
-		##(1);
-	end
-	//c1.sampleClk 	<= 1'b1;
-	//$finish();
-end
+	//Task1
+	report_file = $fopen("reports/task1.txt","w");
+	$fdisplay(report_file, "Impulse response Test");   
 
-##100 $stop();
+	tabs = 0;
+	c1.sampleClk	<= 0;
+	c1.sample 	<= 0;
+	##(20);
+	c1.sample	<= 1;
+	c1.sampleClk	<= 1'b1;
+	while (tabs <= NrOfTaps)
+	begin
+		c1.sampleClk	<= 1'b1;
+		##(1);
+		c1.sampleClk	<= 1'b0;
+		c1.sample 	<= 0;	
+		while (c1.dav != 1) 
+		begin
+			##(1);
+		end
+		// dav == 1
+		tabs++;
+		$display("%t: Sum is : %x", $time, c1.sum);
+		$fdisplay(report_file, "%t: Sum is : %x", $time, c1.sum);    
+		while (c1.dav != 0)
+		begin
+			##(1);
+		end
+	end
+	$fclose(report_file); 
+	
+	//Task2	
+	report_file = $fopen("reports/task2.txt","w");
+	
+	$finish;
+//##100 $stop();
 end
 
 endprogram
