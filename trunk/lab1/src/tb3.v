@@ -234,12 +234,71 @@ end
 
 //logic [2:0] tabc;
 integer tabc;
+bit flag;
 //Test 3
 initial begin
 	tabc = 0;
+	flag = 0;
 	//add = 1;
 	forever
 	begin
+		if (lsc != 0) 
+		begin
+			//$display("%t: LSC != 0", $time);	
+			tabc = 0;
+			flag = 0;
+			//add = 1:
+			//##(1);
+			while (c1.dav != 1)
+			begin	
+				//#2ns;			
+				if(tabc != c1.addrs)
+				begin
+					$display("%t: Violation 3 - Incorrect order, addrs is %d , tabc is %d", $time, addrs, tabc);	
+				end
+				
+				//tabc++;// = add + tabc;
+				if (tabc >= ((NrOfTaps/2)-1) && (flag == 0))
+				begin
+					flag = 1;
+					tabc = 0;
+				end
+				if (flag == 0)
+				begin
+					tabc++;
+				end					
+				##(1);	
+			end	
+		end else
+		begin
+			tabc = 0;
+			##(1);
+			
+		end
+	end
+end
+/*
+//Test 3 b)
+integer tab_count;
+initial begin
+	tab_count = 0;
+	//add = 1;
+	forever
+	begin
+	##(1);
+		if(lsc == 1)
+		begin
+			tab_count = 0;
+			while (tab_count <= (NrOfTaps-1)/2)		
+			begin
+				if(tab_count == c1.addrs)
+				begin
+					$display("%t: Violation 3 - Incorrect order", $time);	
+				end
+				tab_count++;
+			end
+			
+		
 		if (lsc != 0) 
 		begin
 			tabc = 0;
@@ -271,7 +330,7 @@ initial begin
 		end
 	end
 end
-
+*/
 integer tabd;
 //Test 4
 initial begin

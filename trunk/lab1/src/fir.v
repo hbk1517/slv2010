@@ -39,6 +39,10 @@ module fir #(parameter NrOfTaps = 10,
 
    bit signed [SumWidth-1:0] intSum;
    
+// b+a	
+   bit sign;
+   bit round;
+
    const byte N = NrOfTaps-2;
    const byte M = ((NrOfTaps % 2)==0) ? (NrOfTaps/2)-1 : ((NrOfTaps-1)/2);
    const bit oddMac = ((NrOfTaps % 2) == 0) ? 0 : 1;
@@ -174,7 +178,26 @@ module fir #(parameter NrOfTaps = 10,
               bitdataOut1 = dataOut1;
               bitdataOut2 = dataOut2;
 	      intSum = convSum + (bitdataOut1 + bitdataOut2) * bitcoeff;
-              sum=intSum[SumWidth-TruncatedMSBs-1:TruncatedLSBs]+intSum[TruncatedLSBs-1];
+              
+		sum=intSum[SumWidth-TruncatedMSBs-1:TruncatedLSBs]+intSum[TruncatedLSBs-1];
+		//fixed      
+		/*	
+		sign = intSum[[SumWidth-1];	
+	      round = intSum[[TruncatedLSBs-1];		
+	      if (sign == 0 && round == 0)
+		begin 
+			sum = sum + ; 
+		end else if (sign == 0 && round == 0)
+		begin 
+			sum = sum + ; 
+		end else if (sign == 1 && round == 0)
+		begin
+			sum = sum + 1; 
+		end else if (sign == 0 && round == 0)
+		begin
+			sum = sum + ;
+		end
+		*/
               if((intSum[SumWidth-1:SumWidth-TruncatedMSBs-1]!=0) && (intSum[SumWidth-1]==0)) //positive value
                 begin
                 sum=-1;
